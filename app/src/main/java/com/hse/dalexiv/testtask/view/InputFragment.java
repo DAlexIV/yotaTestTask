@@ -6,6 +6,7 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,17 +16,24 @@ import android.widget.EditText;
 import com.hse.dalexiv.testtask.MVP;
 import com.hse.dalexiv.testtask.R;
 
+/**
+ * Fragments which contains input form and the button to submit url
+ */
 public class InputFragment extends Fragment implements MVP.RequiredInputViewOps {
     private static final String INPUT_TEXT = "text";
     private static final String IS_BUTTON_LOCKED = "lock";
 
+    // View properties
     TextInputLayout mTextInputLayout;
     EditText mEditText;
-    MVP.ProvidedInputViewOps mActivityCallback;
     Button mButton;
 
+    // Interface for communicating with the presenter
+    MVP.ProvidedInputViewOps mActivityCallback;
+
+    // Required empty public constructor
     public InputFragment() {
-        // Required empty public constructor
+
     }
 
     @Override
@@ -38,11 +46,9 @@ public class InputFragment extends Fragment implements MVP.RequiredInputViewOps 
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_input, container, false);
-        mTextInputLayout = (TextInputLayout) view.findViewById(R.id.urlInput);
-        mEditText = (EditText) view.findViewById(R.id.editTextUrl);
-        mButton = (Button) view.findViewById(R.id.buttonGo);
-        mButton.setEnabled(false);
+        initViews(view);
 
+        // Adds listeners for button and editText
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -58,6 +64,7 @@ public class InputFragment extends Fragment implements MVP.RequiredInputViewOps 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 mActivityCallback.onUrlChanged(s.toString());
+                mActivityCallback.disableButtonIfRunning();
             }
 
             @Override
@@ -69,16 +76,18 @@ public class InputFragment extends Fragment implements MVP.RequiredInputViewOps 
         return view;
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        mActivityCallback = (MVP.ProvidedInputViewOps) context;
-
+    private void initViews(View view) {
+        mTextInputLayout = (TextInputLayout) view.findViewById(R.id.urlInput);
+        mEditText = (EditText) view.findViewById(R.id.editTextUrl);
+        mButton = (Button) view.findViewById(R.id.buttonGo);
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        // Storing reference to activity via interface
+        mActivityCallback = (MVP.ProvidedInputViewOps) context;
 
     }
 
@@ -95,16 +104,19 @@ public class InputFragment extends Fragment implements MVP.RequiredInputViewOps 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+
+        // Saving text and the button state (yea, I know, that is redundant for the editText)
         outState.putString(INPUT_TEXT, mEditText.getText().toString());
-        outState.putBoolean(IS_BUTTON_LOCKED, mEditText.isEnabled());
+        outState.putBoolean(IS_BUTTON_LOCKED, !mEditText.isEnabled());
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         if (savedInstanceState != null) {
+            // Restoring text and the button state (yea, I know, that is redundant for the editText)
             mEditText.setText(savedInstanceState.getString(INPUT_TEXT));
-            mButton.setEnabled(savedInstanceState.getBoolean(IS_BUTTON_LOCKED));
+            this.setButtonState(savedInstanceState.getBoolean(IS_BUTTON_LOCKED));
         }
     }
 }

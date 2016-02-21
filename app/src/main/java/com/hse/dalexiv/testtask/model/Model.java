@@ -15,8 +15,9 @@ import java.net.UnknownHostException;
 
 public class Model implements MVP.ProvidedModelOps {
     // Common model implementation
-    private static volatile Model instance;
-    protected WeakReference<Presenter> presenter;
+
+    private static volatile Model instance; // Singleton instance
+    protected WeakReference<Presenter> presenter; // Keeping reference to presenter
 
 
     private Model(WeakReference<Presenter> presenter) {
@@ -25,6 +26,7 @@ public class Model implements MVP.ProvidedModelOps {
 
     public static Model getInstance(Presenter presenter) {
         Model localInstance = instance;
+
         if (localInstance == null) {
             synchronized (Model.class) {
                 localInstance = instance;
@@ -33,6 +35,7 @@ public class Model implements MVP.ProvidedModelOps {
                 }
             }
         }
+
         return localInstance;
     }
 
@@ -45,6 +48,7 @@ public class Model implements MVP.ProvidedModelOps {
 
     @Override
     public void getWebPage(String url) {
+        // Handling various exceptions in the model
         try {
             String page = UtilMethods.downloadUrl(url);
             if (page.isEmpty())
@@ -58,7 +62,7 @@ public class Model implements MVP.ProvidedModelOps {
             getPresenter().displayError("Host doesn't exist");
         }
         catch (Exception ex) {
-            getPresenter().displayError(ex.getClass().getName().toString() + ": " + ex.getMessage());
+            getPresenter().displayError(ex.getClass().getName() + ": " + ex.getMessage());
         }
     }
 }

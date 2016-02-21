@@ -14,8 +14,9 @@ import java.lang.ref.WeakReference;
  */
 public class Presenter implements MVP.ProvidedPresenterOps, MVP.RequiredPresenterOps {
     // Common presenter implementation
-    private static volatile Presenter instance;
-    protected WeakReference<MainActivity> view;
+
+    private static volatile Presenter instance; // Singleton instance
+    protected WeakReference<MainActivity> view; // Holding reference to view
     protected Model model;
 
     private Presenter(WeakReference<MainActivity> view) {
@@ -43,24 +44,47 @@ public class Presenter implements MVP.ProvidedPresenterOps, MVP.RequiredPresente
         return view.get();
     }
 
-    // End of presenter implementation
+    // End of common presenter implementation
 
-    AsyncTask<String, Void, Void> urlDownloader;
+    AsyncTask<String, Void, Void> urlDownloader; // AsyncTask for the model execution
 
+    @Override
+    public void disableButtonIfRunning() {
+        if (urlDownloader != null && urlDownloader.getStatus() == AsyncTask.Status.RUNNING) {
+            getView().setButtonState(false);
+        }
+    }
+
+    /**
+     * Validates entered url
+     *
+     * @param text - text entered
+     */
     @Override
     public void onUrlChanged(String text) {
         boolean generalValidation = UtilMethods.validateUrl(text);
-        if (generalValidation)
+
+        if (generalValidation) // If url have is valid
+        {
             getView().showURLTextHint("");
-        else {
-            if (UtilMethods.validateHttpUrl(text))
+            getView().setButtonState(true);
+        } else {
+            if (UtilMethods.validateHttpUrl(text)) {
                 getView().showURLTextHint("Please, enter correct URL");
-            else
+            } else {
+                // If it doesn't contain http pattern then we will inform user
                 getView().showURLTextHint("URL should start from http");
+            }
+
+            getView().setButtonState(false);
         }
-        getView().setButtonState(generalValidation);
     }
 
+    /**
+     * Handles button click
+     *
+     * @param url Entered url
+     */
     @Override
     public void onClick(String url) {
         urlDownloader = new AsyncTask<String, Void, Void>() {
@@ -71,6 +95,8 @@ public class Presenter implements MVP.ProvidedPresenterOps, MVP.RequiredPresente
             }
         };
         urlDownloader.execute(url);
+
+        // Preventing button from future clicks
         getView().setButtonState(false);
     }
 
@@ -79,7 +105,14 @@ public class Presenter implements MVP.ProvidedPresenterOps, MVP.RequiredPresente
         getView().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                getView().displayHtml(text);
+                // Display only first characters if the text is too long
+                // so we won't block UI thread
+                if (text.length() > 100000) {
+                    getView().displayHtml(text.substring(0, 100000));
+                } else {
+                    getView().displayHtml(text);
+                }
+
                 getView().setButtonState(true);
             }
         });

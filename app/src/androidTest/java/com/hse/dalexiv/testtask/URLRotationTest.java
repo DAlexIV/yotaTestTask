@@ -21,14 +21,16 @@ import static com.hse.dalexiv.testtask.OrientationChangeAction.orientationPortra
 import static org.hamcrest.CoreMatchers.not;
 
 @RunWith(AndroidJUnit4.class)
-public class URLRotationTest extends BaseUrlTest{
+public class URLRotationTest extends BaseUrlTest {
     String url = "https://www.ihgagent.com/documents/19042802/19042864/Effective+Java.pdf";
+
     @Test
     public void enterUrl() {
         onView(withId(R.id.editTextUrl)).perform(typeText(url));
-        onView(withId(R.id.buttonGo)).perform(click());
         onView(isRoot()).perform(orientationLandscape());
+        onView(withId(R.id.buttonGo)).perform(click());
         onView(isRoot()).perform(orientationPortrait());
+
         onView(withId(R.id.textView)).check(matches(not(withText(""))));
     }
 }

@@ -25,10 +25,5 @@ public class BaseUrlTest {
         onView(withId(R.id.editTextUrl)).perform(typeText(url));
         onView(withId(R.id.buttonGo)).perform(click());
         onView(withId(R.id.textView)).check(matches(not(withText(""))));
-
-        try {
-            Thread.sleep(4000);
-        } catch (InterruptedException ex) {
-        }
     }
 }

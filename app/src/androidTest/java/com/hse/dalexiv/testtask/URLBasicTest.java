@@ -23,7 +23,7 @@ public class URLBasicTest extends BaseUrlTest {
     String url = "http://yandex.ru/robots.txt";
 
     @Test
-    public void enterUrl() {
+    public void test() {
         super.enterUrl(url);
     }
 }
